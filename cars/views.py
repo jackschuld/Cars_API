@@ -10,7 +10,11 @@ from .models import Car
 def cars_list(request):
 
     if request.method == 'GET':
+        dealership_name = request.query_params.get('dealership')
+        print(dealership_name)
         cars = Car.objects.all()
+        if dealership_name:
+            cars = cars.filter(dealership__name=dealership_name)
         serializer = CarSerializer(cars, many=True)
         return Response(serializer.data)
 
@@ -24,14 +28,17 @@ def cars_list(request):
 @api_view(['GET', 'PUT', 'DELETE'])
 def car_detail(request, pk):
     car = get_object_or_404(Car, pk=pk)
+
     if request.method == 'GET':
         serializer = CarSerializer(car)
         return Response(serializer.data)
+
     elif request.method == 'PUT':
         serializer = CarSerializer(car, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
     elif request.method == 'DELETE':
         car.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
